@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fabric Interfaces | Federico Emanuele Mameo</title>
+  <meta name="description" content="Fabric Interfaces: three tangible interfaces made of textile, prototyped at Random Studio to explore soft, haptic interaction in retail spaces beyond rigid screens.">
+  <meta name="keywords" content="Fabric Interfaces, textile interface, conductive fabric, soft materials, tangible interaction, retail design, Random Studio, physical computing, ESP32, MQTT">
+  <meta name="author" content="Federico Emanuele Mameo">
+  <meta property="og:title" content="Fabric Interfaces | Federico Emanuele Mameo">
+  <meta property="og:description" content="Three tangible interfaces made of textile, exploring soft, haptic interaction in retail spaces.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="images_fabricproject/button.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Newsreader:opsz,wght@6..72,300&family=Noto+Sans+SC:wght@300&family=Noto+Serif+SC:wght@300&display=swap" rel="stylesheet">
+
+  <style>
+    /* ------------------------------------------------------------
+       Fonts — Neue Montreal (sans) and Times Now SemiLight (serif),
+       served from ./fonts/. local() picks the installed copy when present.
+       ------------------------------------------------------------ */
+    @font-face {
+      font-family: "Neue Montreal";
+      src: local("Neue Montreal Light"), local("NeueMontreal-Light"),
+           url("fonts/NeueMontreal-Light.otf") format("opentype");
+      
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "Neue Montreal";
+      src: local("Neue Montreal Regular"), local("NeueMontreal-Regular"),
+           url("fonts/NeueMontreal-Regular.otf") format("opentype");
+      
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "TimesNow-SemiLight";
+      src: local("Times Now SemiLight"), local("TimesNow-SemiLight"),
+           url("fonts/TimesNow-SemiLight.otf") format("opentype");
+       /* single cut, used for both weights */
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --sans: "Neue Montreal", "Inter", "Helvetica Neue", Helvetica, Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --serif: "TimesNow-SemiLight", "Newsreader", "Times New Roman", Times, "Noto Serif SC", "Songti SC", "SimSun", serif;
+      --ink: #1A1A1A;
+      --paper: #FAFAFA;
+      --paper-ink: #D9D9D9;
+      --gutter: 20px;
+      --gutter-m: 10px;
+      --header-h: 60px;
+      --ease: cubic-bezier(0.02, 0.01, 0.47, 1);
+      --weight: 300;
+      --tracking: -0.015em;
+    }
+    /* CJK glyphs don't like negative tracking and need more leading */
+    html[lang="zh"] { --tracking: 0; }
+    html[lang="zh"] .text-holder p,
+    html[lang="zh"] .text-holder-small p,
+    html[lang="zh"] .footer p { line-height: 1.5; }
+    html[lang="zh"] .text-holder-large p { line-height: 1.25; }
+    html[lang="zh"] .page-title,
+    html[lang="zh"] .footer__logo { letter-spacing: 0; }
+
+    /* ------------------------------------------------------------
+       Base
+       ------------------------------------------------------------ */
+    html { box-sizing: border-box; -webkit-text-size-adjust: 100%; }
+    *, *::before, *::after { box-sizing: inherit; }
+
+    body {
+      margin: 0;
+      padding-top: var(--header-h);
+      font-family: var(--sans);
+      font-weight: var(--weight);
+      letter-spacing: var(--tracking);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    a { text-decoration: none; color: inherit; }
+    h1, h2, h3, h4, h5, h6, p, blockquote, dl, dd { margin: 0; font-weight: 300; }
+    img, video { max-width: 100%; height: auto; }
+    ul { margin: 0; padding: 0; list-style: none; }
+
+    /* ------------------------------------------------------------
+       Typography scales
+       ------------------------------------------------------------ */
+    .text-holder p {
+      font-family: var(--sans);
+      font-weight: 300;
+      font-size: clamp(22px, 1.25vw, 30px);
+      line-height: 1.1875;
+    }
+    @media (max-width: 1023px) { .text-holder p { font-size: 20px; } }
+    .text-holder p + p { margin-top: 1.1875em; }
+    .text-holder p a { border-bottom: 1px solid currentcolor; }
+    .text-holder p a:hover { border-bottom-color: transparent; }
+
+    .text-holder-small p {
+      font-family: var(--sans);
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.1875;
+    }
+    @media (max-width: 767px) { .text-holder-small p { font-size: 12px; } }
+    .text-holder-small p + p { margin-top: 1.1875em; }
+
+    .text-holder-large p {
+      font-family: var(--serif);
+      font-weight: 300;
+      letter-spacing: -0.01em;
+      font-size: clamp(32px, 2.81vw, 72px);
+      line-height: 1;
+    }
+    @media (max-width: 767px) { .text-holder-large p { font-size: 28px; } }
+    .text-holder-large p + p { margin-top: 1em; }
+    @media (min-width: 2550px) { .project-intro p { max-width: 2510px; } }
+
+    /* Section labels (small caps line above a paragraph) */
+    .text-holder .label {
+      font-size: 16px;
+      line-height: 1.1875;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      margin-bottom: 1.1875em;
+    }
+    @media (max-width: 767px) { .text-holder .label { font-size: 12px; } }
+    /* Column without a label, top-aligned with a sibling column's body text:
+       offsets by the label's height (16px x 1.1875) plus its bottom margin. */
+    .text__item--below-label { padding-top: calc(16px * 1.1875 * 2); }
+    @media (max-width: 767px) { .text__item--below-label { padding-top: 0; } }
+
+    /* ------------------------------------------------------------
+       Header
+       ------------------------------------------------------------ */
+    .header {
+      font-family: var(--sans);
+      font-size: clamp(22px, 1.25vw, 30px);
+      line-height: 1.1875;
+      position: fixed;
+      top: 0; right: 0; left: 0;
+      z-index: 200;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      height: var(--header-h);
+      padding: 0 var(--gutter);
+      background: var(--paper);
+      will-change: transform;
+      transition: transform 0.2s var(--ease);
+    }
+    .header.is-hidden { transform: translateY(-100%); }
+    @media (max-width: 1023px) { .header { font-size: 20px; } }
+    .header__navigation { display: flex; gap: 2ch; }
+    .header__navigation--center { justify-content: center; }
+    .header__navigation__item__button { border-bottom: 1px solid transparent; }
+    .header__navigation__item__button:hover,
+    .header__navigation__item__button.is-active { border-bottom-color: currentcolor; }
+    .header__right { display: flex; align-items: center; justify-content: flex-end; gap: 4ch; }
+    .header__lang { display: flex; gap: 1ch; }
+    .header__lang__button {
+      padding: 0;
+      font: inherit;
+      color: inherit;
+      background: none;
+      border: 0;
+      border-bottom: 1px solid transparent;
+      cursor: pointer;
+      letter-spacing: inherit;
+    }
+    .header__lang__button:hover,
+    .header__lang__button.is-active { border-bottom-color: currentcolor; }
+    @media (max-width: 767px) {
+      body { padding-top: 40px; }
+      .header { height: 40px; padding: 0 var(--gutter-m); font-size: 16px; grid-template-columns: 1fr auto; }
+      .header__navigation--center { display: none; }
+      .header__text { display: none; }
+    }
+
+    /* ------------------------------------------------------------
+       Page title
+       ------------------------------------------------------------ */
+    .page-title {
+      margin: 15px auto 0;
+      width: calc(100% - var(--gutter) * 2);
+      font-family: var(--sans);
+      font-weight: 300;
+      font-size: clamp(48px, 7.03vw, 160px);
+      line-height: 0.9;
+      letter-spacing: -0.03em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .page-title ~ .flexible-content { margin-top: clamp(16px, 1.68vw, 43px); }
+    @media (max-width: 767px) {
+      .page-title { width: calc(100% - var(--gutter-m) * 2); font-size: 48px; margin-top: 12px; }
+      .page-title ~ .flexible-content { margin-top: 24px; }
+    }
+
+    /* ------------------------------------------------------------
+       Flexible content
+       ------------------------------------------------------------ */
+    .flexible-content__item {
+      margin-right: auto;
+      margin-left: auto;
+      width: calc(100% - var(--gutter) * 2);
+    }
+    .flexible-content__item + .flexible-content__item--whitespace-s { margin-top: 20px; }
+    .flexible-content__item + .flexible-content__item--whitespace-m { margin-top: 60px; }
+    .flexible-content__item + .flexible-content__item--whitespace-l { margin-top: 120px; }
+    @media (max-width: 767px) {
+      .flexible-content__item { width: calc(100% - var(--gutter-m) * 2); }
+      .flexible-content__item + .flexible-content__item--whitespace-s { margin-top: 10px; }
+      .flexible-content__item + .flexible-content__item--whitespace-m { margin-top: 30px; }
+      .flexible-content__item + .flexible-content__item--whitespace-l { margin-top: 60px; }
+    }
+
+    /* 12-column grid shared by text / media / credits */
+    .grid-12 {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      column-gap: var(--gutter);
+    }
+    @media (max-width: 767px) {
+      .grid-12 { grid-template-columns: repeat(6, 1fr); column-gap: var(--gutter-m); }
+    }
+
+    /* Text blocks */
+    .text--1-column .text__item { grid-column: span 12; }
+    .text--2-column .text__item { grid-column: span 6; }
+    .text--3-column .text__item--l { grid-column: span 8; }
+    .text--3-column .text__item--s { grid-column: span 4; }
+    @media (max-width: 767px) {
+      .text--1-column .text__item, .text--2-column .text__item, .text--3-column .text__item { grid-column: span 6; }
+      .text .text__item.is-empty { display: none; }
+      .text .text__item + .text__item.text-holder > *:first-child { margin-top: 1.1875em; }
+      .text .text__item.is-empty + .text__item > *:first-child { margin-top: 0; }
+    }
+
+    /* Media blocks */
+    .media__inner { row-gap: var(--gutter); }
+    .media__item { position: relative; }
+    .media__item img, .media__item video { display: block; width: 100%; }
+    .media__item video { object-fit: cover; }
+    .media__item--square img, .media__item--square video { aspect-ratio: 1 / 1; object-fit: cover; }
+    .media__item--wide img, .media__item--wide video { aspect-ratio: 16 / 9; object-fit: cover; }
+    .media__item--portrait img, .media__item--portrait video { aspect-ratio: 3 / 4; object-fit: cover; }
+    /* Show the whole media inside the frame instead of cropping it */
+    .media__item--fit img, .media__item--fit video { object-fit: contain; }
+
+    .media--1-column .media__item { grid-column: span 12; }
+    .media--1-column .media__item--l { grid-column: 3 / span 8; }
+    .media--1-column .media__item--m { grid-column: 4 / span 6; }
+    .media--1-column .media__item--s { grid-column: 5 / span 4; }
+    .media--2-column .media__item { grid-column: span 6; }
+    .media--3-column .media__item--l { grid-column: span 8; }
+    .media--3-column .media__item--s { grid-column: span 4; }
+    .media--4-column .media__item { grid-column: span 3; }
+    @media (max-width: 767px) {
+      .media__inner { row-gap: var(--gutter-m); }
+      .media--1-column .media__item,
+      .media--2-column .media__item,
+      .media--3-column .media__item { grid-column: span 6; }
+      .media--4-column .media__item { grid-column: span 3; }
+    }
+
+    /* Hover controls on videos (reference behaviour) */
+    .media__item__controls {
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.1875;
+      position: absolute;
+      right: 0; bottom: 0; left: 0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 2ch;
+      padding: 20px;
+      text-transform: uppercase;
+      color: var(--paper);
+      background-image: linear-gradient(180deg, rgba(238,238,238,0) 0%, rgba(0,0,0,0.3) 100%);
+      opacity: 0;
+      transition: opacity 0.2s var(--ease);
+    }
+    .media__item:hover .media__item__controls { opacity: 1; }
+    @media (hover: none) { .media__item__controls { opacity: 1; } }
+    @media (max-width: 767px) { .media__item__controls { font-size: 12px; padding: 10px; } }
+    .media__item__controls__item { cursor: pointer; }
+    .media__item__controls__item:hover { text-decoration: underline; }
+
+    /* Two images stacked in one column: the second one fills whatever height
+       is left, so its bottom edge lines up with the neighbouring column. */
+    .media__item--stack { display: flex; flex-direction: column; }
+    .media__item__stacked { flex: 1 1 0; min-height: 0; margin-top: var(--gutter); object-fit: cover; }
+    .media__item__stacked--fit { object-fit: contain; object-position: left top; }
+    @media (max-width: 767px) {
+      .media__item__stacked { flex: none; margin-top: var(--gutter-m); aspect-ratio: 3 / 2; }
+    }
+
+    /* Captions under media items */
+    .media__item__caption { margin-top: 10px; }
+
+    /* Project details (Purpose / Year / Role ...) */
+    .details .details__item { grid-column: span 2; }
+    /* 5 items x 2 columns = 10 of 12: start at column 2 to centre the row */
+    .details .details__item:first-child { grid-column: 2 / span 2; }
+    .details .details__item p:first-child { color: rgba(26,26,26,0.5); }
+    .details .details__item p + p { margin-top: 0.25em; }
+    .details .details__item a { border-bottom: 1px solid currentcolor; }
+    .details .details__item a:hover { border-bottom-color: transparent; }
+    @media (max-width: 767px) {
+      .details .details__item,
+      .details .details__item:first-child { grid-column: span 3; margin-bottom: 20px; }
+    }
+
+    /* Credits */
+    .credits > * { grid-column: 2 / span 10; }
+    @media (max-width: 767px) { .credits > * { grid-column: span 6; } }
+
+    /* ------------------------------------------------------------
+       Footer
+       ------------------------------------------------------------ */
+    .footer { margin-top: 120px; color: var(--paper-ink); background: var(--ink); }
+    .footer__inner {
+      margin: 0 auto;
+      width: calc(100% - var(--gutter) * 2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100vh;
+      padding-top: 25px;
+      padding-bottom: 20px;
+    }
+    .footer__row { display: flex; justify-content: space-between; }
+    .footer__row + .footer__row { margin-top: 100px; }
+    .footer__row:nth-child(1) .footer__column {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      column-gap: var(--gutter);
+    }
+    .footer__row:nth-child(1) .footer__column:nth-child(2) > * { grid-column: span 5; max-width: 1140px; }
+    .footer__row:nth-child(2) { align-items: flex-end; }
+    .footer__column { width: 50%; }
+    .footer__column--disclaimer { display: flex; }
+    .footer__column--disclaimer p { font-size: 16px; line-height: 1.1875; }
+    .footer__logo {
+      font-family: var(--serif);
+      font-size: clamp(48px, 7.03vw, 160px);
+      line-height: 0.9;
+      letter-spacing: -0.03em;
+      grid-column: span 6;
+    }
+    .footer .text-holder p a { border-bottom: 1px solid currentcolor; }
+    .footer .text-holder p a:hover { border-bottom-color: transparent; }
+    @media (max-width: 767px) {
+      .footer { margin-top: 60px; }
+      .footer__inner { width: calc(100% - var(--gutter-m) * 2); min-height: auto; padding-top: 10px; padding-bottom: 45px; }
+      .footer__row { flex-direction: column; }
+      .footer__row + .footer__row { margin-top: 60px; }
+      .footer__row:nth-child(1) .footer__column:nth-child(2) p:first-child { margin-top: 60px; }
+      .footer__row:nth-child(1) .footer__column:nth-child(2) > * { grid-column: span 6; }
+      .footer__row:nth-child(2) { flex-direction: column-reverse; }
+      .footer__column { width: 100%; }
+      .footer__column--disclaimer { margin-top: 120px; }
+      .footer__column--disclaimer p { font-size: 12px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="header">
+    <ul class="header__navigation">
+      <li class="header__navigation__item">
+        <a href="about.html" class="header__navigation__item__button">Federico Mameo</a>
+      </li>
+    </ul>
+    <ul class="header__navigation header__navigation--center">
+      <li class="header__navigation__item">
+        <a href="feelthespace_v2.html" class="header__navigation__item__button">Feel the Space</a>
+      </li>
+      <li class="header__navigation__item">
+        <a href="fabric_interfaces.html" class="header__navigation__item__button is-active">Fabric Interfaces</a>
+      </li>
+    </ul>
+    <div class="header__right">
+      
+      <div class="header__lang" role="group" aria-label="Language">
+        <button class="header__lang__button is-active" data-lang="en" lang="en">EN</button>
+        <button class="header__lang__button" data-lang="zh" lang="zh">中文</button>
+      </div>
+    </div>
+  </header>
+
+  <h1 class="page-title" data-i18n="title">Fabric Interfaces</h1>
+
+  <div class="flexible-content">
+
+    <!-- Intro -->
+    <div class="flexible-content__item flexible-content__item--whitespace-s project-intro text-holder-large">
+      <p data-i18n="p1">Fabric Interfaces is a research on soft materials as a way to interact with retail spaces. Developed at Random Studio, it turns everyday textiles into tangible interfaces, enabling haptic and tactile interactions that no rigid screen can offer.</p>
+    </div>
+
+    <!-- Hero video -->
+    <div class="flexible-content__item flexible-content__item--whitespace-m media media--1-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--xl media__item--wide">
+          <video src="images_fabricproject/FabricControllersFinal_web.mp4" poster="images_fabricproject/button.png" muted playsinline loop preload="metadata" data-autoplay></video>
+          <div class="media__item__controls">
+            <span class="media__item__controls__item" data-action="sound" data-i18n="ctl.soundOn">Sound on</span>
+            <span class="media__item__controls__item" data-action="fullscreen" data-i18n="ctl.fullscreen">Fullscreen</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project details -->
+    <div class="flexible-content__item flexible-content__item--whitespace-m details grid-12 text-holder-small">
+      <div class="details__item"><p data-i18n="p2">Purpose</p><p data-i18n="p3">Work</p></div>
+      <div class="details__item"><p data-i18n="p4">Company</p><p data-i18n="p5"><a href="https://random.studio/" target="_blank" rel="noopener">Random Studio</a></p></div>
+      <div class="details__item"><p data-i18n="p6">Year</p><p data-i18n="p7">2025</p></div>
+      <div class="details__item"><p data-i18n="p8">Duration</p><p data-i18n="p9">2 months</p></div>
+      <div class="details__item"><p data-i18n="p10">Role</p><p data-i18n="p11">Researcher, Interaction Designer &amp; Prototyper</p></div>
+    </div>
+
+    <!-- The Challenge / The Solution -->
+    <div class="flexible-content__item flexible-content__item--whitespace-l text text--3-column">
+      <div class="text__inner grid-12">
+        <div class="text__item text__item--s text-holder">
+          <p class="label" data-i18n="p12">The Challenge</p>
+          <p data-i18n="p13">Research, design and prototype new ways of interacting within retail environments. The goal was to explore intuitive, embodied experiences that could engage customers in novel ways, moving beyond traditional touchscreens and rigid interfaces.</p>
+        </div>
+        <div class="text__item text__item--s text-holder">
+          <p class="label" data-i18n="p14">The Solution</p>
+          <p data-i18n="p15">Three tangible interfaces made of fabric were prototyped to let people interact seamlessly with the physical environment around them. Each one shows how soft, responsive materials can offer intuitive and emotionally expressive interactions.</p>
+          <p data-i18n="p16">By integrating technology directly into everyday textiles, this approach offers a compelling, tactile alternative to the conventional, rigid screens typically found in-store.</p>
+        </div>
+        <div class="text__item text__item--s text-holder is-empty"></div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-l media media--1-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--l">
+          <img src="images_fabricproject/button.png" alt="Fabric button" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-s media media--2-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--wide">
+          <img src="images_fabricproject/detailfabric.jpg" alt="Fabric detail" loading="lazy">
+        </div>
+        <div class="media__item media__item--wide">
+          <img src="images_fabricproject/touch.jpg" alt="Hand touching the fabric" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <!-- Three prototypes, one material -->
+    <div class="flexible-content__item flexible-content__item--whitespace-l project-intro text-holder-large">
+      <p data-i18n="p17">Three prototypes, one material. Each one takes a gesture people already know and gives it to the fabric.</p>
+    </div>
+
+    <!-- 01 Switch Button -->
+    <div class="flexible-content__item flexible-content__item--whitespace-l text text--3-column">
+      <div class="text__inner grid-12">
+        <div class="text__item text__item--s text-holder">
+          <p class="label" data-i18n="p18">01 — Switch Button</p>
+          <p data-i18n="p19">A fabric button that simply turns a light on or off. It translates a familiar binary gesture, a press, into a soft, tactile interaction with the material itself.</p>
+        </div>
+        <div class="text__item text__item--s text-holder is-empty"></div>
+        <div class="text__item text__item--s text-holder is-empty"></div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-m media media--2-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--square">
+          <img src="images_fabricproject/buttontop.png" alt="Switch button, top view" loading="lazy">
+        </div>
+        <div class="media__item media__item--square">
+          <img src="images_fabricproject/buttondetail.png" alt="Switch button, detail" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <!-- 02 Approach -->
+    <div class="flexible-content__item flexible-content__item--whitespace-l text text--3-column">
+      <div class="text__inner grid-12">
+        <div class="text__item text__item--s text-holder is-empty"></div>
+        <div class="text__item text__item--s text-holder">
+          <p class="label" data-i18n="p20">02 — Approach</p>
+          <p data-i18n="p21">A fabric panel that senses the proximity of a hand and shifts the light's hue accordingly, growing more intense as the hand approaches until it responds to touch. The act of getting closer becomes a gradual, expressive dialogue with the material.</p>
+        </div>
+        <div class="text__item text__item--s text-holder is-empty"></div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-m media media--1-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--xl">
+          <img src="images_fabricproject/approach.png" alt="Approach: the light shifts as the hand gets closer" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <!-- 03 Curtain -->
+    <div class="flexible-content__item flexible-content__item--whitespace-l text text--3-column">
+      <div class="text__inner grid-12">
+        <div class="text__item text__item--s text-holder is-empty"></div>
+        <div class="text__item text__item--s text-holder is-empty"></div>
+        <div class="text__item text__item--s text-holder">
+          <p class="label" data-i18n="p22">03 — Curtain</p>
+          <p data-i18n="p23">A scaled reproduction of a curtain that, when touched, activates a small fan. Direct contact with the fabric is linked to a physical response in the surrounding air.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-m media media--2-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--wide">
+          <video src="images_fabricproject/lateral_curtain_web.mp4" muted playsinline loop preload="metadata" data-autoplay></video>
+        </div>
+        <div class="media__item media__item--wide">
+          <img src="images_fabricproject/curtainside.gif" alt="Curtain, side view" loading="lazy">
+        </div>
+      </div>
+    </div>
+    <div class="flexible-content__item flexible-content__item--whitespace-s media media--1-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--l media__item--wide media__item--fit">
+          <video src="images_fabricproject/IMG_9185_web.mp4" muted playsinline loop preload="metadata" data-autoplay></video>
+          <div class="media__item__controls">
+            <span class="media__item__controls__item" data-action="fullscreen" data-i18n="ctl.fullscreen">Fullscreen</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Under the fabric -->
+    <div class="flexible-content__item flexible-content__item--whitespace-l text text--3-column">
+      <div class="text__inner grid-12">
+        <div class="text__item text__item--s text-holder">
+          <p class="label" data-i18n="p24">Under the fabric</p>
+          <p data-i18n="p25">The work started from existing textile interfaces and soft robotics projects, then moved to controller concepts built on gestures that feel natural with soft materials: squeezing, stretching, folding, pressing.</p>
+        </div>
+        <div class="text__item text__item--s text-holder">
+          <p data-i18n="p26">Different conductive fabrics were tested in various materials and configurations to understand the potential and limits of each in detecting touch and pressure. The fabric was then connected to a microcontroller, first an Adafruit Feather, then a XIAO ESP32 S3 for its Wi-Fi, both with double-sided conductive copper tape and with conductive thread, to see which method was more reliable and durable.</p>
+          <p data-i18n="p27">The data from the fabrics was sent via MQTT to the studio's Home Assistant system, so that specific devices could be controlled through smart plugs.</p>
+        </div>
+        <div class="text__item text__item--s text-holder is-empty"></div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-m media media--3-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--s media__item--portrait">
+          <img src="images_fabricproject/fabric_samples.png" alt="Conductive fabric samples" loading="lazy">
+        </div>
+        <div class="media__item media__item--s media__item--portrait">
+          <img src="images_fabricproject/IMG_9365.jpg" alt="Testing fabric touch sensitivity" loading="lazy">
+        </div>
+        <div class="media__item media__item--s media__item--portrait">
+          <img src="images_fabricproject/IMG_9068.jpg" alt="Fabric connected to the microcontroller" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-s media media--2-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--portrait">
+          <img src="images_fabricproject/IMG_8911.jpg" alt="Conductive copper tape connection" loading="lazy">
+        </div>
+        <div class="media__item media__item--portrait">
+          <img src="images_fabricproject/IMG_8912.jpg" alt="Conductive thread connection" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-s media media--3-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--s media__item--portrait">
+          <video src="images_fabricproject/IMG_8924_web.mp4" muted playsinline loop preload="metadata" data-autoplay></video>
+        </div>
+        <div class="media__item media__item--s media__item--portrait">
+          <video src="images_fabricproject/IMG_8967_web.mp4" muted playsinline loop preload="metadata" data-autoplay></video>
+        </div>
+        <div class="media__item media__item--s media__item--portrait">
+          <video src="images_fabricproject/IMG_9007_web.mp4" muted playsinline loop preload="metadata" data-autoplay></video>
+        </div>
+      </div>
+    </div>
+
+    
+
+    <!-- Credits -->
+    <div class="flexible-content__item flexible-content__item--whitespace-l credits grid-12 text-holder-small">
+      <p data-i18n="p28">
+        Fabric Interfaces
+        <br><br>
+        Research Project — 2025<br>
+        
+      </p>
+    </div>
+
+  </div>
+  <!-- end .flexible-content -->
+
+  <footer class="footer">
+    <div class="footer__inner">
+
+      <div class="footer__row">
+        <div class="footer__column">
+          <a href="index.html" class="footer__logo">FM</a>
+        </div>
+        <div class="footer__column text-holder">
+          <p data-i18n="f1">Federico Emanuele Mameo</p>
+          <p data-i18n="f2">Interaction designer and creative technologist working at the intersection of spatial intelligence, physical computing and craft. Fabric Interfaces was developed during a research period at Random Studio, Amsterdam.</p>
+        </div>
+      </div>
+
+      <div class="footer__row">
+        <div class="footer__column footer__column--disclaimer">
+          <p data-i18n="f3">©2026 Federico Emanuele Mameo. All Rights Reserved</p>
+        </div>
+        <div class="footer__column text-holder">
+          <p data-i18n="f4">General Inquiries<br><a href="mailto:federicoemanuele.mameo@gmail.com">federicoemanuele.mameo@gmail.com</a></p>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      // Header hides on scroll down, reappears on scroll up (headroom behaviour)
+      var header = document.querySelector('.header');
+      var lastY = window.scrollY;
+      window.addEventListener('scroll', function () {
+        var y = window.scrollY;
+        if (y > lastY && y > 80) header.classList.add('is-hidden');
+        else header.classList.remove('is-hidden');
+        lastY = y;
+      }, { passive: true });
+
+      // Videos play only while in the viewport
+      var videos = document.querySelectorAll('video[data-autoplay]');
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            var v = entry.target;
+            if (entry.isIntersecting) { v.play().catch(function () {}); }
+            else { v.pause(); }
+          });
+        }, { threshold: 0.25 });
+        videos.forEach(function (v) { io.observe(v); });
+      } else {
+        videos.forEach(function (v) { v.play().catch(function () {}); });
+      }
+
+      // Hover controls: sound / fullscreen
+      document.querySelectorAll('.media__item__controls__item').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var video = btn.closest('.media__item').querySelector('video');
+          if (!video) return;
+          if (btn.dataset.action === 'sound') {
+            video.muted = !video.muted;
+            var d = window.I18N[document.documentElement.lang] || window.I18N.en;
+            btn.textContent = video.muted ? d['ctl.soundOn'] : d['ctl.soundOff'];
+          }
+          if (btn.dataset.action === 'fullscreen') {
+            var el = video;
+            if (el.requestFullscreen) el.requestFullscreen();
+            else if (el.webkitEnterFullscreen) el.webkitEnterFullscreen();
+          }
+        });
+      });
+    })();
+  </script>
+
+  <script>
+    // ---------------------------------------------------------------
+    // Language toggle. English lives in the markup; Chinese lives here.
+    // Elements carry data-i18n="key"; the English text is cached from
+    // the DOM on load, so editing the HTML never breaks the toggle.
+    // ---------------------------------------------------------------
+    (function () {
+      var ZH = {
+        'header.place': '阿姆斯特丹.2025',
+        'title': '织物界面',
+        'ctl.soundOn': '开启声音',
+        'ctl.soundOff': '关闭声音',
+        'ctl.fullscreen': '全屏',
+
+        p1: 'Fabric Interfaces 是一项关于以柔软材料与零售空间互动的研究。项目在 Random Studio 完成，将日常织物转化为可触摸的界面，带来任何硬质屏幕都无法提供的触觉与触感交互。',
+
+        p2: '性质', p3: '工作项目',
+        p4: '公司', p5: '<a href="https://random.studio/" target="_blank" rel="noopener">Random Studio</a>',
+        p6: '年份', p7: '2025',
+        p8: '时长', p9: '2 个月',
+        p10: '角色', p11: '研究员、交互设计师与原型师',
+
+        p12: '挑战',
+        p13: '研究、设计并制作零售环境中新的交互方式原型。目标是探索直观、具身的体验，以新颖的方式吸引顾客，超越传统触摸屏与硬质界面。',
+        p14: '方案',
+        p15: '我们制作了三个由织物构成的可触摸界面原型，让人们能够自然地与身处的物理环境互动。每一个都展示了柔软、可响应的材料如何提供直观且富有情感表达的交互。',
+        p16: '通过将技术直接融入日常织物，这一方式为门店中常见的传统硬质屏幕提供了一种引人入胜的触觉替代方案。',
+
+        p17: '三个原型，一种材料。每一个都取用人们早已熟悉的手势，并把它交给织物。',
+
+        p18: '01 — 开关按钮',
+        p19: '一个织物按钮，只用来开灯或关灯。它把一个熟悉的二元手势，按压，转化为与材料本身柔软的触觉交互。',
+
+        p20: '02 — 靠近',
+        p21: '一块织物面板，能感知手的接近并相应地改变光的色调，随着手越来越近而愈发强烈，直到对触摸作出回应。靠近这一动作，成为与材料之间渐进而富有表现力的对话。',
+
+        p22: '03 — 窗帘',
+        p23: '一件按比例缩小的窗帘复制品，触摸时会启动一台小风扇。与织物的直接接触，被联结到周围空气中的物理回应。',
+
+        p24: '织物之下',
+        p25: '工作从现有的织物界面与软体机器人项目出发，随后转向基于柔软材料自然手势的控制器概念：挤压、拉伸、折叠、按压。',
+        p26: '我们测试了多种导电织物的不同材料与构造，以了解各自在检测触摸与压力方面的潜力与局限。随后将织物连接到微控制器，先是 Adafruit Feather，之后因其 Wi-Fi 功能改用 XIAO ESP32 S3，并分别使用双面导电铜箔胶带与导电线连接，以比较哪种方式更可靠、更耐用。',
+        p27: '来自织物的数据通过 MQTT 发送到工作室的 Home Assistant 系统，从而可以通过智能插座控制特定设备。',
+
+        p28: 'Fabric Interfaces<br><br>Random Studio，阿姆斯特丹 — 2025<br>研究、交互设计、原型制作：Federico Emanuele Mameo',
+
+        f1: 'Federico Emanuele Mameo',
+        f2: '交互设计师与创意技术师，工作于空间智能、物理计算与手工艺的交汇处。Fabric Interfaces 是在阿姆斯特丹 Random Studio 的研究期间完成的项目。',
+        f3: '©2026 Federico Emanuele Mameo 版权所有',
+        f4: '一般咨询<br><a href="mailto:federicoemanuele.mameo@gmail.com">federicoemanuele.mameo@gmail.com</a>'
+      };
+
+      var nodes = document.querySelectorAll('[data-i18n]');
+      var EN = {};
+      nodes.forEach(function (el) { EN[el.dataset.i18n] = el.innerHTML; });
+      EN['ctl.soundOff'] = 'Sound off';
+      window.I18N = { en: EN, zh: ZH };
+
+      function setLang(lang) {
+        var dict = lang === 'zh' ? ZH : EN;
+        nodes.forEach(function (el) {
+          var key = el.dataset.i18n;
+          // sound button: keep its current on/off state
+          if (key === 'ctl.soundOn') {
+            var video = el.closest('.media__item').querySelector('video');
+            key = (video && !video.muted) ? 'ctl.soundOff' : 'ctl.soundOn';
+          }
+          if (dict[key] != null) el.innerHTML = dict[key];
+        });
+        document.documentElement.lang = lang;
+        document.querySelectorAll('.header__lang__button').forEach(function (b) {
+          b.classList.toggle('is-active', b.dataset.lang === lang);
+        });
+        try { localStorage.setItem('lang', lang); } catch (e) {}
+      }
+
+      document.querySelectorAll('.header__lang__button').forEach(function (b) {
+        b.addEventListener('click', function () { setLang(b.dataset.lang); });
+      });
+
+      var saved = null;
+      try { saved = localStorage.getItem('lang'); } catch (e) {}
+      if (saved === 'zh') setLang('zh');
+    })();
+  </script>
+
+</body>
+</html>

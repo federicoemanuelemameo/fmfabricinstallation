@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feel the Space | Federico Emanuele Mameo</title>
+  <meta name="description" content="Feel the Space is a spatially intelligent retail installation where a Nishijin-ori textile becomes the interface: the fabric senses movement, gaze and touch, and the space answers with light, motion and projected craft.">
+  <meta name="keywords" content="Feel the Space, Hosoo, Nishijin-ori, textile interface, spatial intelligence, retail design, gaze estimation, tangible interaction, interactive textile, physical computing">
+  <meta name="author" content="Federico Emanuele Mameo">
+  <meta property="og:title" content="Feel the Space | Federico Emanuele Mameo">
+  <meta property="og:description" content="A spatially intelligent installation where a Nishijin-ori textile becomes the interface between a visitor and the space.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/front_idle.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Newsreader:opsz,wght@6..72,300&family=Noto+Sans+SC:wght@300&family=Noto+Serif+SC:wght@300&display=swap" rel="stylesheet">
+
+  <style>
+    /* ------------------------------------------------------------
+       Fonts — Neue Montreal (sans) and Times Now SemiLight (serif),
+       served from ./fonts/. local() picks the installed copy when present.
+       ------------------------------------------------------------ */
+    @font-face {
+      font-family: "Neue Montreal";
+      src: local("Neue Montreal Light"), local("NeueMontreal-Light"),
+           url("fonts/NeueMontreal-Light.otf") format("opentype");
+      
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "Neue Montreal";
+      src: local("Neue Montreal Regular"), local("NeueMontreal-Regular"),
+           url("fonts/NeueMontreal-Regular.otf") format("opentype");
+      
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "TimesNow-SemiLight";
+      src: local("Times Now SemiLight"), local("TimesNow-SemiLight"),
+           url("fonts/TimesNow-SemiLight.otf") format("opentype");
+       /* single cut, used for both weights */
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --sans: "Neue Montreal", "Inter", "Helvetica Neue", Helvetica, Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --serif: "TimesNow-SemiLight", "Newsreader", "Times New Roman", Times, "Noto Serif SC", "Songti SC", "SimSun", serif;
+      --ink: #1A1A1A;
+      --paper: #FAFAFA;
+      --paper-ink: #D9D9D9;
+      --gutter: 20px;
+      --gutter-m: 10px;
+      --header-h: 60px;
+      --ease: cubic-bezier(0.02, 0.01, 0.47, 1);
+      --weight: 300;
+      --tracking: -0.015em;
+    }
+    /* CJK glyphs don't like negative tracking and need more leading */
+    html[lang="zh"] { --tracking: 0; }
+    html[lang="zh"] .text-holder p,
+    html[lang="zh"] .text-holder-small p,
+    html[lang="zh"] .footer p { line-height: 1.5; }
+    html[lang="zh"] .text-holder-large p { line-height: 1.25; }
+    html[lang="zh"] .page-title,
+    html[lang="zh"] .footer__logo { letter-spacing: 0; }
+
+    /* ------------------------------------------------------------
+       Base
+       ------------------------------------------------------------ */
+    html { box-sizing: border-box; -webkit-text-size-adjust: 100%; }
+    *, *::before, *::after { box-sizing: inherit; }
+
+    body {
+      margin: 0;
+      padding-top: var(--header-h);
+      font-family: var(--sans);
+      font-weight: var(--weight);
+      letter-spacing: var(--tracking);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    a { text-decoration: none; color: inherit; }
+    h1, h2, h3, h4, h5, h6, p, blockquote, dl, dd { margin: 0; font-weight: 300; }
+    img, video { max-width: 100%; height: auto; }
+    ul { margin: 0; padding: 0; list-style: none; }
+
+    /* ------------------------------------------------------------
+       Typography scales
+       ------------------------------------------------------------ */
+    .text-holder p {
+      font-family: var(--sans);
+      font-weight: 300;
+      font-size: clamp(22px, 1.25vw, 30px);
+      line-height: 1.1875;
+    }
+    @media (max-width: 1023px) { .text-holder p { font-size: 20px; } }
+    .text-holder p + p { margin-top: 1.1875em; }
+    .text-holder p a { border-bottom: 1px solid currentcolor; }
+    .text-holder p a:hover { border-bottom-color: transparent; }
+
+    .text-holder-small p {
+      font-family: var(--sans);
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.1875;
+    }
+    @media (max-width: 767px) { .text-holder-small p { font-size: 12px; } }
+    .text-holder-small p + p { margin-top: 1.1875em; }
+
+    .text-holder-large p {
+      font-family: var(--serif);
+      font-weight: 300;
+      letter-spacing: -0.01em;
+      font-size: clamp(32px, 2.81vw, 72px);
+      line-height: 1;
+    }
+    @media (max-width: 767px) { .text-holder-large p { font-size: 28px; } }
+    .text-holder-large p + p { margin-top: 1em; }
+    @media (min-width: 2550px) { .project-intro p { max-width: 2510px; } }
+
+    /* Section labels (small caps line above a paragraph) */
+    .text-holder .label {
+      font-size: 16px;
+      line-height: 1.1875;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      margin-bottom: 1.1875em;
+    }
+    @media (max-width: 767px) { .text-holder .label { font-size: 12px; } }
+    /* Column without a label, top-aligned with a sibling column's body text:
+       offsets by the label's height (16px x 1.1875) plus its bottom margin. */
+    .text__item--below-label { padding-top: calc(16px * 1.1875 * 2); }
+    @media (max-width: 767px) { .text__item--below-label { padding-top: 0; } }
+
+    /* ------------------------------------------------------------
+       Header
+       ------------------------------------------------------------ */
+    .header {
+      font-family: var(--sans);
+      font-size: clamp(22px, 1.25vw, 30px);
+      line-height: 1.1875;
+      position: fixed;
+      top: 0; right: 0; left: 0;
+      z-index: 200;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      height: var(--header-h);
+      padding: 0 var(--gutter);
+      background: var(--paper);
+      will-change: transform;
+      transition: transform 0.2s var(--ease);
+    }
+    .header.is-hidden { transform: translateY(-100%); }
+    @media (max-width: 1023px) { .header { font-size: 20px; } }
+    .header__navigation { display: flex; gap: 2ch; }
+    .header__navigation--center { justify-content: center; }
+    .header__navigation__item__button { border-bottom: 1px solid transparent; }
+    .header__navigation__item__button:hover,
+    .header__navigation__item__button.is-active { border-bottom-color: currentcolor; }
+    .header__right { display: flex; align-items: center; justify-content: flex-end; gap: 4ch; }
+    .header__lang { display: flex; gap: 1ch; }
+    .header__lang__button {
+      padding: 0;
+      font: inherit;
+      color: inherit;
+      background: none;
+      border: 0;
+      border-bottom: 1px solid transparent;
+      cursor: pointer;
+      letter-spacing: inherit;
+    }
+    .header__lang__button:hover,
+    .header__lang__button.is-active { border-bottom-color: currentcolor; }
+    @media (max-width: 767px) {
+      body { padding-top: 40px; }
+      .header { height: 40px; padding: 0 var(--gutter-m); font-size: 16px; grid-template-columns: 1fr auto; }
+      .header__navigation--center { display: none; }
+      .header__text { display: none; }
+    }
+
+    /* ------------------------------------------------------------
+       Page title
+       ------------------------------------------------------------ */
+    .page-title {
+      margin: 15px auto 0;
+      width: calc(100% - var(--gutter) * 2);
+      font-family: var(--sans);
+      font-weight: 300;
+      font-size: clamp(48px, 7.03vw, 160px);
+      line-height: 0.9;
+      letter-spacing: -0.03em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .page-title ~ .flexible-content { margin-top: clamp(16px, 1.68vw, 43px); }
+    @media (max-width: 767px) {
+      .page-title { width: calc(100% - var(--gutter-m) * 2); font-size: 48px; margin-top: 12px; }
+      .page-title ~ .flexible-content { margin-top: 24px; }
+    }
+
+    /* ------------------------------------------------------------
+       Flexible content
+       ------------------------------------------------------------ */
+    .flexible-content__item {
+      margin-right: auto;
+      margin-left: auto;
+      width: calc(100% - var(--gutter) * 2);
+    }
+    .flexible-content__item + .flexible-content__item--whitespace-s { margin-top: 20px; }
+    .flexible-content__item + .flexible-content__item--whitespace-m { margin-top: 60px; }
+    .flexible-content__item + .flexible-content__item--whitespace-l { margin-top: 120px; }
+    @media (max-width: 767px) {
+      .flexible-content__item { width: calc(100% - var(--gutter-m) * 2); }
+      .flexible-content__item + .flexible-content__item--whitespace-s { margin-top: 10px; }
+      .flexible-content__item + .flexible-content__item--whitespace-m { margin-top: 30px; }
+      .flexible-content__item + .flexible-content__item--whitespace-l { margin-top: 60px; }
+    }
+
+    /* 12-column grid shared by text / media / credits */
+    .grid-12 {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      column-gap: var(--gutter);
+    }
+    @media (max-width: 767px) {
+      .grid-12 { grid-template-columns: repeat(6, 1fr); column-gap: var(--gutter-m); }
+    }
+
+    /* Text blocks */
+    .text--1-column .text__item { grid-column: span 12; }
+    .text--2-column .text__item { grid-column: span 6; }
+    .text--3-column .text__item--l { grid-column: span 8; }
+    .text--3-column .text__item--s { grid-column: span 4; }
+    @media (max-width: 767px) {
+      .text--1-column .text__item, .text--2-column .text__item, .text--3-column .text__item { grid-column: span 6; }
+      .text .text__item.is-empty { display: none; }
+      .text .text__item + .text__item.text-holder > *:first-child { margin-top: 1.1875em; }
+      .text .text__item.is-empty + .text__item > *:first-child { margin-top: 0; }
+    }
+
+    /* Media blocks */
+    .media__inner { row-gap: var(--gutter); }
+    .media__item { position: relative; }
+    .media__item img, .media__item video { display: block; width: 100%; }
+    .media__item video { object-fit: cover; }
+    .media__item--square img, .media__item--square video { aspect-ratio: 1 / 1; object-fit: cover; }
+    .media__item--wide img, .media__item--wide video { aspect-ratio: 16 / 9; object-fit: cover; }
+    .media__item--portrait img, .media__item--portrait video { aspect-ratio: 3 / 4; object-fit: cover; }
+
+    .media--1-column .media__item { grid-column: span 12; }
+    .media--1-column .media__item--l { grid-column: 3 / span 8; }
+    .media--1-column .media__item--m { grid-column: 4 / span 6; }
+    .media--1-column .media__item--s { grid-column: 5 / span 4; }
+    .media--2-column .media__item { grid-column: span 6; }
+    .media--3-column .media__item--l { grid-column: span 8; }
+    .media--3-column .media__item--s { grid-column: span 4; }
+    .media--4-column .media__item { grid-column: span 3; }
+    @media (max-width: 767px) {
+      .media__inner { row-gap: var(--gutter-m); }
+      .media--1-column .media__item,
+      .media--2-column .media__item,
+      .media--3-column .media__item { grid-column: span 6; }
+      .media--4-column .media__item { grid-column: span 3; }
+    }
+
+    /* Hover controls on videos (reference behaviour) */
+    .media__item__controls {
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.1875;
+      position: absolute;
+      right: 0; bottom: 0; left: 0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 2ch;
+      padding: 20px;
+      text-transform: uppercase;
+      color: var(--paper);
+      background-image: linear-gradient(180deg, rgba(238,238,238,0) 0%, rgba(0,0,0,0.3) 100%);
+      opacity: 0;
+      transition: opacity 0.2s var(--ease);
+    }
+    .media__item:hover .media__item__controls { opacity: 1; }
+    @media (hover: none) { .media__item__controls { opacity: 1; } }
+    @media (max-width: 767px) { .media__item__controls { font-size: 12px; padding: 10px; } }
+    .media__item__controls__item { cursor: pointer; }
+    .media__item__controls__item:hover { text-decoration: underline; }
+
+    /* Two images stacked in one column: the second one fills whatever height
+       is left, so its bottom edge lines up with the neighbouring column. */
+    .media__item--stack { display: flex; flex-direction: column; }
+    .media__item__stacked { flex: 1 1 0; min-height: 0; margin-top: var(--gutter); object-fit: cover; }
+    .media__item__stacked--fit { object-fit: contain; object-position: left top; }
+    @media (max-width: 767px) {
+      .media__item__stacked { flex: none; margin-top: var(--gutter-m); aspect-ratio: 3 / 2; }
+    }
+
+    /* Captions under media items */
+    .media__item__caption { margin-top: 10px; }
+
+    /* Project details (Purpose / Year / Role ...) */
+    .details .details__item { grid-column: span 2; }
+    /* 5 items x 2 columns = 10 of 12: start at column 2 to centre the row */
+    .details .details__item:first-child { grid-column: 2 / span 2; }
+    .details .details__item p:first-child { color: rgba(26,26,26,0.5); }
+    .details .details__item p + p { margin-top: 0.25em; }
+    .details .details__item a { border-bottom: 1px solid currentcolor; }
+    .details .details__item a:hover { border-bottom-color: transparent; }
+    @media (max-width: 767px) {
+      .details .details__item,
+      .details .details__item:first-child { grid-column: span 3; margin-bottom: 20px; }
+    }
+
+    /* Credits */
+    .credits > * { grid-column: 2 / span 10; }
+    @media (max-width: 767px) { .credits > * { grid-column: span 6; } }
+
+    /* ------------------------------------------------------------
+       Footer
+       ------------------------------------------------------------ */
+    .footer { margin-top: 120px; color: var(--paper-ink); background: var(--ink); }
+    .footer__inner {
+      margin: 0 auto;
+      width: calc(100% - var(--gutter) * 2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100vh;
+      padding-top: 25px;
+      padding-bottom: 20px;
+    }
+    .footer__row { display: flex; justify-content: space-between; }
+    .footer__row + .footer__row { margin-top: 100px; }
+    .footer__row:nth-child(1) .footer__column {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      column-gap: var(--gutter);
+    }
+    .footer__row:nth-child(1) .footer__column:nth-child(2) > * { grid-column: span 5; max-width: 1140px; }
+    .footer__row:nth-child(2) { align-items: flex-end; }
+    .footer__column { width: 50%; }
+    .footer__column--disclaimer { display: flex; }
+    .footer__column--disclaimer p { font-size: 16px; line-height: 1.1875; }
+    .footer__logo {
+      font-family: var(--serif);
+      font-size: clamp(48px, 7.03vw, 160px);
+      line-height: 0.9;
+      letter-spacing: -0.03em;
+      grid-column: span 6;
+    }
+    .footer .text-holder p a { border-bottom: 1px solid currentcolor; }
+    .footer .text-holder p a:hover { border-bottom-color: transparent; }
+    @media (max-width: 767px) {
+      .footer { margin-top: 60px; }
+      .footer__inner { width: calc(100% - var(--gutter-m) * 2); min-height: auto; padding-top: 10px; padding-bottom: 45px; }
+      .footer__row { flex-direction: column; }
+      .footer__row + .footer__row { margin-top: 60px; }
+      .footer__row:nth-child(1) .footer__column:nth-child(2) p:first-child { margin-top: 60px; }
+      .footer__row:nth-child(1) .footer__column:nth-child(2) > * { grid-column: span 6; }
+      .footer__row:nth-child(2) { flex-direction: column-reverse; }
+      .footer__column { width: 100%; }
+      .footer__column--disclaimer { margin-top: 120px; }
+      .footer__column--disclaimer p { font-size: 12px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="header">
+    <ul class="header__navigation">
+      <li class="header__navigation__item">
+        <a href="about.html" class="header__navigation__item__button">Federico Mameo</a>
+      </li>
+    </ul>
+    <ul class="header__navigation header__navigation--center">
+      <li class="header__navigation__item">
+        <a href="feelthespace_v2.html" class="header__navigation__item__button is-active">Feel the Space</a>
+      </li>
+      <li class="header__navigation__item">
+        <a href="fabric_interfaces.html" class="header__navigation__item__button">Fabric Interfaces</a>
+      </li>
+    </ul>
+    <div class="header__right">
+      
+      <div class="header__lang" role="group" aria-label="Language">
+        <button class="header__lang__button is-active" data-lang="en" lang="en">EN</button>
+        <button class="header__lang__button" data-lang="zh" lang="zh">中文</button>
+      </div>
+    </div>
+  </header>
+
+  <h1 class="page-title" data-i18n="title">Feel the Space</h1>
+
+  <div class="flexible-content">
+
+    <!-- Intro -->
+    <div class="flexible-content__item flexible-content__item--whitespace-s project-intro text-holder-large">
+      <p data-i18n="p1">Feel the Space turns a textile into an interface. A spatially intelligent installation for premium retail, it lets a Nishijin-ori fabric sense a visitor's movement, gaze and touch - and lets the space answer through light, motion and the fabric itself, without a single screen.</p>
+    </div>
+
+    <!-- Hero video -->
+    <div class="flexible-content__item flexible-content__item--whitespace-m media media--1-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--xl media__item--wide">
+          <video src="assets/videothesis_web.mp4" poster="assets/front_idle.png" muted playsinline loop preload="metadata" data-autoplay></video>
+          <div class="media__item__controls">
+            <span class="media__item__controls__item" data-action="sound" data-i18n="ctl.soundOn">Sound on</span>
+            <span class="media__item__controls__item" data-action="fullscreen" data-i18n="ctl.fullscreen">Fullscreen</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project details -->
+    <div class="flexible-content__item flexible-content__item--whitespace-m details grid-12 text-holder-small">
+      <div class="details__item"><p data-i18n="p2">Case Study</p><p data-i18n="p3"><a href="https://www.hosoo-kyoto.com/jp/" target="_blank" rel="noopener">Hosoo</a></p></div>
+      <div class="details__item"><p data-i18n="p4">Year</p><p data-i18n="p5">2026</p></div>
+      <div class="details__item"><p data-i18n="p6">Duration</p><p data-i18n="p7">4 months <br>(3 research + 1 prototyping)</p></div>
+      
+      <div class="details__item"><p data-i18n="p8">Type</p><p data-i18n="p9">Individual</p></div>
+      <div class="details__item"><p data-i18n="p10">Role</p><p data-i18n="p11">Designer, Creative Technologist</p></div>
+    </div>
+
+    <!-- The fabric as interface -->
+    <div class="flexible-content__item flexible-content__item--whitespace-l text text--3-column">
+      <div class="text__inner grid-12">
+        <div class="text__item text__item--s text-holder is-empty"></div>
+        <div class="text__item text__item--s text-holder">
+          <p data-i18n="p12">In premium retail, the most valued moments are the ones a screen gets in the way of: approaching a product, looking at it, touching it. Feel the Space keeps those gestures exactly as they are and makes the material itself the medium of the conversation.</p>
+          <p data-i18n="p13">Situated conceptually in Hosoo's flagship store in Kyoto, the installation is conceived as a multi-panel of Nishijin-ori fabric, mounted on a motorised rail and lit by projection. A depth camera reads the visitor's position and gaze; conductive fabric layered behind the textile reads pressure. Everything the visitor does is read through the space, and everything the space says is said through the fabric.</p>
+        </div>
+        <div class="text__item text__item--s text-holder is-empty"></div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-l media media--1-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--m">
+          <img src="assets/render.png" alt="Feel the Space, the textile panel in the store" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-s media media--2-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--stack">
+          <img src="assets/facade.png" alt="Nishijin-ori fabric, detail" loading="lazy">
+          <img src="assets/store_plant.png" alt="Store plan with visitor journey" loading="lazy" class="media__item__stacked media__item__stacked--fit">
+        </div>
+        <div class="media__item">
+          <img src="assets/shelf.jpg" alt="Conductive fabric layered behind the textile" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <!-- Three distances, one material -->
+    <div class="flexible-content__item flexible-content__item--whitespace-l project-intro text-holder-large">
+      <p data-i18n="p14">Three distances, one material. The fabric responds differently as the visitor moves closer, from a passing glance to the hand on the weave.</p>
+    </div>
+
+    <!-- 01 Approach -->
+    <div class="flexible-content__item flexible-content__item--whitespace-l text text--3-column">
+      <div class="text__inner grid-12">
+        <div class="text__item text__item--s text-holder">
+          <p class="label" data-i18n="p15">01 — Approach</p>
+          <p data-i18n="p16">At rest, the fabric is still. A faint light traces its natural pattern, enough to suggest that it is alive.</p>
+          <p data-i18n="p17">When a visitor passes by, a soft pulse of light reveals the weave and follows them, reading their position, distance and speed. It draws attention without ever demanding it.</p>
+        </div>
+        <div class="text__item text__item--s text-holder is-empty"></div>
+        <div class="text__item text__item--s text-holder is-empty"></div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-m media media--1-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--xl">
+          <img src="assets/spatialinteraction.gif" alt="Approach: light follows the visitor across the fabric" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-s media media--2-column">
+      <div class="media__inner grid-12">
+        <div class="media__item">
+          <img src="assets/front_idle.png" alt="Idle state: the fabric at rest" loading="lazy">
+        </div>
+        <div class="media__item">
+          <img src="assets/ksu1.jpg" alt="Approach: light pulse across the weave" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <!-- 02 Gaze -->
+    <div class="flexible-content__item flexible-content__item--whitespace-l text text--3-column">
+      <div class="text__inner grid-12">
+        <div class="text__item text__item--s text-holder is-empty"></div>
+        <div class="text__item text__item--s text-holder">
+          <p class="label" data-i18n="p18">02 — Gaze</p>
+          <p data-i18n="p19">When the visitor stops and looks, the system tracks which part of the fabric holds their focus. That look is the trigger: animated patterns bloom across the textile and the panel glides along its rail, turning itself toward the person.</p>
+          <p data-i18n="p20">The fabric is no longer a surface being looked at. It looks back.</p>
+        </div>
+        <div class="text__item text__item--s text-holder is-empty"></div>
+      </div>
+    </div>
+
+    
+
+    <div class="flexible-content__item flexible-content__item--whitespace-s media media--2-column">
+      <div class="media__inner grid-12">
+        <div class="media__item">
+          <img src="assets/lateral_attractor.JPG" alt="Kinetic panel, lateral view" loading="lazy">
+        </div>
+        <div class="media__item">
+          <img src="assets/front_motion.jpg" alt="The panel in motion" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <!-- 03 Touch -->
+    <div class="flexible-content__item flexible-content__item--whitespace-l text text--3-column">
+      <div class="text__inner grid-12">
+        <div class="text__item text__item--s text-holder is-empty"></div>
+        <div class="text__item text__item--s text-holder is-empty"></div>
+        <div class="text__item text__item--s text-holder">
+          <p class="label" data-i18n="p21">03 — Touch</p>
+          <p data-i18n="p22">Up close, the Nishijin-ori fabric becomes the interface itself. Capacitive sensing through the weave reads the pressure of the hand, and the visuals projected onto the textile respond to it: the harder and longer the touch, the faster and denser the pattern moves.</p>
+          <p data-i18n="p23">Touch is the most intimate step and the most important gesture in retail. Here it surfaces the craft held within the fabric: centuries of textile-making, revealed through the hand.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-m media media--1-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--xl">
+          <img src="assets/tangible.gif" alt="Touch: the projected pattern reacts to the hand" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-s media media--3-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--s media__item--wide">
+          <img src="assets/tangible_interaction1.png" alt="Touch interaction 1" loading="lazy">
+        </div>
+        <div class="media__item media__item--s media__item--wide">
+          <img src="assets/tangible_interaction2.png" alt="Touch interaction 2" loading="lazy">
+        </div>
+        <div class="media__item media__item--s media__item--wide">
+          <img src="assets/tangible_interaction3.png" alt="Touch interaction 3" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-s media media--2-column">
+      <div class="media__inner grid-12">
+        <div class="media__item">
+          <img src="assets/conductive_fabric.jpg" alt="Projected visuals on the fabric" loading="lazy">
+        </div>
+        <div class="media__item">
+          <img src="assets/fabric.jpg" alt="Projection on the Nishijin-ori panel" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <!-- The Visuals: the craft inside the fabric -->
+    <div class="flexible-content__item flexible-content__item--whitespace-l text text--3-column">
+      <div class="text__inner grid-12">
+        <div class="text__item text__item--s text-holder">
+          <p class="label" data-i18n="p24">What the fabric shows</p>
+          <p data-i18n="p25">What appears on the textile is the textile's own story. Nishijin-ori is made through eight specialised steps, from design and colour to thread, warp and loom, before a single line is woven. The projections reinterpret each step as a living pattern, in the same visual language across the whole installation.</p>
+        </div>
+        <div class="text__item text__item--s text-holder">
+          <p data-i18n="p26">Built in WebGL and driven by the touch sensing in the fabric, the eight frames move as the hand moves: the pressure of the visitor sets the speed and density of the composition, so every touch reveals the craft a little differently.</p>
+        </div>
+        <div class="text__item text__item--s text-holder is-empty"></div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-m media media--4-column text-holder-small">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--square">
+          <img src="assets/zuan.gif" alt="Zuan" loading="lazy">
+          <p class="media__item__caption" data-i18n="p27">01 — Zuan</p>
+        </div>
+        <div class="media__item media__item--square">
+          <img src="assets/ishozu.gif" alt="Ishozu" loading="lazy">
+          <p class="media__item__caption" data-i18n="p28">02 — Ishozu</p>
+        </div>
+        <div class="media__item media__item--square">
+          <img src="assets/seiren.gif" alt="Seiren" loading="lazy">
+          <p class="media__item__caption" data-i18n="p29">03 — Seiren</p>
+        </div>
+        <div class="media__item media__item--square">
+          <img src="assets/nenshi.gif" alt="Nenshi" loading="lazy">
+          <p class="media__item__caption" data-i18n="p30">04 — Nenshi</p>
+        </div>
+        <div class="media__item media__item--square">
+          <img src="assets/itozome.gif" alt="Itozome" loading="lazy">
+          <p class="media__item__caption" data-i18n="p31">05 — Itozome</p>
+        </div>
+        <div class="media__item media__item--square">
+          <img src="assets/seikei.gif" alt="Seikei" loading="lazy">
+          <p class="media__item__caption" data-i18n="p32">06 — Seikei</p>
+        </div>
+        <div class="media__item media__item--square">
+          <img src="assets/hata-jitate.gif" alt="Hata-jitate" loading="lazy">
+          <p class="media__item__caption" data-i18n="p33">07 — Hata-jitate</p>
+        </div>
+        <div class="media__item media__item--square">
+          <img src="assets/hata-ori.gif" alt="Hata-ori" loading="lazy">
+          <p class="media__item__caption" data-i18n="p34">08 — Hata-ori</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== WHAT IT BRINGS ==================== -->
+
+    <div class="flexible-content__item flexible-content__item--whitespace-l project-intro text-holder-large">
+      <p data-i18n="b0">For a textile brand, the fabric is the product, the story and the store. Feel the Space lets it be the interface too.</p>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-m text text--3-column">
+      <div class="text__inner grid-12">
+        <div class="text__item text__item--s text-holder">
+          <p class="label" data-i18n="b1t">01 — The fabric tells its own story</p>
+          <p data-i18n="b1">Heritage is a brand's strongest asset and the hardest to show at the point of sale. Here the craft is not on a placard or a screen: it appears on the weave itself, the moment a visitor touches it. Eight steps, or your own.</p>
+        </div>
+        <div class="text__item text__item--s text-holder">
+          <p class="label" data-i18n="b2t">02 — More touch, longer stays</p>
+          <p data-i18n="b2">In premium retail, touch is the gesture that precedes purchase. The installation is built to invite it: light draws the visitor in, the panel turns toward them, and the fabric rewards the hand. Every stage extends the time spent with the material.</p>
+        </div>
+        <div class="text__item text__item--s text-holder">
+          <p class="label" data-i18n="b3t">03 — A flagship moment, without screens</p>
+          <p data-i18n="b3">A living, kinetic textile is a reason to visit the store and to talk about it afterwards. It gives the space a signature no digital display can, and it stays true to the material, because the material is the medium.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-m media media--2-column">
+      <div class="media__inner grid-12">
+        <div class="media__item">
+          <img src="assets/ksu_nagaya.JPG" alt="Visitors with the installation" loading="lazy">
+        </div>
+        <div class="media__item">
+          <img src="assets/ksu_pattern.JPG" alt="The projected craft pattern on the fabric" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <!-- Under the fabric -->
+    <div class="flexible-content__item flexible-content__item--whitespace-l text text--3-column">
+      <div class="text__inner grid-12">
+        <div class="text__item text__item--s text-holder is-empty"></div>
+        <div class="text__item text__item--s text-holder">
+          <p class="label" data-i18n="p35">Under the fabric</p>
+          <p data-i18n="p36">A depth camera and a computer-vision pipeline handle person detection, distance, velocity and gaze. Conductive fabric behind the Nishijin-ori panel handles touch. A lead-screw actuator moves the panel along its rail; a projector draws on it. None of it is visible: the only thing the visitor meets is the weave.</p>
+        </div>
+        <div class="text__item text__item--s text-holder is-empty"></div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-m media media--1-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--l">
+          <img src="assets/components.png" alt="Installation components" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <div class="flexible-content__item flexible-content__item--whitespace-s media media--1-column">
+      <div class="media__inner grid-12">
+        <div class="media__item media__item--xl media__item--wide">
+          <video src="assets/ksu_video_web.mp4" poster="assets/ksu1.jpg" muted playsinline loop preload="metadata" data-autoplay></video>
+          <div class="media__item__controls">
+            <span class="media__item__controls__item" data-action="fullscreen" data-i18n="ctl.fullscreen">Fullscreen</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== BRINGING IT TO YOUR TEXTILE ==================== -->
+
+    <div class="flexible-content__item flexible-content__item--whitespace-l text text--3-column">
+      <div class="text__inner grid-12">
+        <div class="text__item text__item--s text-holder">
+          <p class="label" data-i18n="n0">Bringing it to your textile</p>
+          <p data-i18n="n1">Feel the Space was developed with Nishijin-ori in Kyoto, but nothing in it is tied to one fabric. The sensing layer sits behind any woven panel; the projected visuals are built from the brand's own production steps; panel scale, rail length and position follow the store.</p>
+        </div>
+        <div class="text__item text__item--s text-holder is-empty"></div>
+        <div class="text__item text__item--s text-holder text__item--below-label">
+          <p data-i18n="n2">Adapting it means three conversations: your fabric, your craft story, your store.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Credits -->
+    <div class="flexible-content__item flexible-content__item--whitespace-l credits grid-12 text-holder-small">
+      <p data-i18n="p37">
+        Feel the Space
+        <br><br>
+        Exploratory Project - 2026<br>
+        Developed at Kyoto Sangyo University<br>
+        Context: Hosoo Flagship Store, Kyoto<br>
+        Textile: Nishijin-ori
+      </p>
+    </div>
+
+  </div>
+  <!-- end .flexible-content -->
+
+  <footer class="footer">
+    <div class="footer__inner">
+
+      <div class="footer__row">
+        <div class="footer__column">
+          <a href="index.html" class="footer__logo">FM</a>
+        </div>
+        <div class="footer__column text-holder">
+          <p data-i18n="p38">Federico Emanuele Mameo</p>
+          <p data-i18n="p39">Interaction designer and creative technologist working at the intersection of spatial intelligence, physical computing and craft. Feel the Space is a thesis project exploring how AI-mediated environments can become the primary interface between people and the materials they hold.</p>
+        </div>
+      </div>
+
+      <div class="footer__row">
+        <div class="footer__column footer__column--disclaimer">
+          <p data-i18n="p40">©2026 Federico Emanuele Mameo. All Rights Reserved</p>
+        </div>
+        <div class="footer__column text-holder">
+          <p data-i18n="p41">General Inquiries<br><a href="mailto:federicoemanuele.mameo@gmail.com">federicoemanuele.mameo@gmail.com</a></p>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      // Header hides on scroll down, reappears on scroll up (headroom behaviour)
+      var header = document.querySelector('.header');
+      var lastY = window.scrollY;
+      window.addEventListener('scroll', function () {
+        var y = window.scrollY;
+        if (y > lastY && y > 80) header.classList.add('is-hidden');
+        else header.classList.remove('is-hidden');
+        lastY = y;
+      }, { passive: true });
+
+      // Videos play only while in the viewport
+      var videos = document.querySelectorAll('video[data-autoplay]');
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            var v = entry.target;
+            if (entry.isIntersecting) { v.play().catch(function () {}); }
+            else { v.pause(); }
+          });
+        }, { threshold: 0.25 });
+        videos.forEach(function (v) { io.observe(v); });
+      } else {
+        videos.forEach(function (v) { v.play().catch(function () {}); });
+      }
+
+      // Hover controls: sound / fullscreen
+      document.querySelectorAll('.media__item__controls__item').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var video = btn.closest('.media__item').querySelector('video');
+          if (!video) return;
+          if (btn.dataset.action === 'sound') {
+            video.muted = !video.muted;
+            var d = window.I18N[document.documentElement.lang] || window.I18N.en;
+            btn.textContent = video.muted ? d['ctl.soundOn'] : d['ctl.soundOff'];
+          }
+          if (btn.dataset.action === 'fullscreen') {
+            var el = video;
+            if (el.requestFullscreen) el.requestFullscreen();
+            else if (el.webkitEnterFullscreen) el.webkitEnterFullscreen();
+          }
+        });
+      });
+    })();
+  </script>
+
+  <script>
+    // ---------------------------------------------------------------
+    // Language toggle. English lives in the markup; Chinese lives here.
+    // Elements carry data-i18n="key"; the English text is cached from
+    // the DOM on load, so editing the HTML never breaks the toggle.
+    // ---------------------------------------------------------------
+    (function () {
+      var ZH = {
+        'header.place': '京都.2026',
+        'title': '感受空间',
+        'ctl.soundOn': '开启声音',
+        'ctl.soundOff': '关闭声音',
+        'ctl.fullscreen': '全屏',
+
+        p1: 'Feel the Space 让一块织物成为界面。这是一件面向高端零售的空间智能装置：西阵织面料能够感知访客的移动、目光与触摸，而空间则通过光、运动以及织物本身作出回应，没有任何屏幕。',
+
+        p2: '案例研究', p3: '<a href="https://www.hosoo-kyoto.com/jp/" target="_blank" rel="noopener">HOSOO 细尾</a>',
+        p4: '年份', p5: '2026',
+        p6: '时长', p7: '4 个月<br>（3 个月研究 + 1 个月原型）',
+        p8: '类型', p9: '个人项目',
+        p10: '角色', p11: '设计师、创意技术师',
+
+        p12: '在高端零售中，最珍贵的时刻恰恰是屏幕会造成干扰的时刻：走近一件商品、注视它、触摸它。Feel the Space 原封不动地保留这些动作，并让材料本身成为对话的媒介。',
+        p13: '装置的概念场景设定于京都 HOSOO 旗舰店：一组多联的西阵织面板，安装在电动导轨上，由投影照亮。深度摄像头读取访客的位置与目光；织物背后的导电布读取压力。访客的一切行为都由空间来感知，而空间的一切回应都通过织物来表达。',
+
+        p14: '三种距离，一种材料。随着访客逐渐靠近，从匆匆一瞥到手掌触及织纹，织物作出不同的回应。',
+
+        p15: '01 — 靠近',
+        p16: '静止时，织物一动不动。一道微光沿着它天然的纹样游走，足以暗示它是有生命的。',
+        p17: '当访客经过时，一阵柔和的光脉冲显现出织纹并跟随他们，读取其位置、距离与速度。它吸引注意，却从不强求。',
+
+        p18: '02 — 注视',
+        p19: '当访客停下注视时，系统会追踪织物的哪一部分吸引了他们的目光。这一注视便是触发点：动态纹样在织物上绽放，面板沿导轨滑动，将自己转向那个人。',
+        p20: '织物不再是被观看的表面。它也在回望。',
+
+        p21: '03 — 触摸',
+        p22: '近距离时，西阵织面料本身成为界面。织纹中的电容感应读取手的压力，投射在织物上的影像随之回应：触摸越用力、越持久，纹样的运动就越快、越密。',
+        p23: '触摸是最亲密的一步，也是零售中最重要的动作。在这里，它让织物内蕴藏的工艺浮现出来：数百年的织造技艺，经由手掌得以显现。',
+
+        p24: '织物所呈现的',
+        p25: '织物上呈现的，正是织物自身的故事。西阵织需经过八道专门工序，从图案、配色到丝线、整经、织机，之后才织出第一根线。投影以整件装置统一的视觉语言，将每一道工序重新诠释为活动的纹样。',
+        p26: '八个画面以 WebGL 构建，由织物中的触摸感应驱动，随手的动作而动：访客的压力决定构图的速度与密度，因此每一次触摸所揭示的工艺都略有不同。',
+
+        p27: '01 — 图案 Zuan',
+        p28: '02 — 意匠图 Ishozu',
+        p29: '03 — 精练 Seiren',
+        p30: '04 — 捻丝 Nenshi',
+        p31: '05 — 染丝 Itozome',
+        p32: '06 — 整经 Seikei',
+        p33: '07 — 装机 Hata-jitate',
+        p34: '08 — 织造 Hata-ori',
+
+        p35: '织物之下',
+        p36: '深度摄像头与计算机视觉流程负责人体检测、距离、速度与目光。西阵织面板背后的导电布负责触摸。丝杠执行器驱动面板沿导轨移动；投影仪在其上作画。这一切都不可见：访客所遇见的，唯有织纹。',
+
+        p37: 'Feel the Space<br><br>毕业设计 — 2026<br>于京都产业大学完成<br>场景：京都 HOSOO 旗舰店<br>交互设计、创意技术：Federico Emanuele Mameo<br>织物：西阵织',
+
+        b0: '对织物品牌而言，面料就是产品、故事与门店本身。Feel the Space 让它也成为界面。',
+        b1t: '01 — 织物讲述自己的故事',
+        b1: '传承是品牌最有力的资产，却最难在销售现场呈现。在这里，工艺不在说明牌上，也不在屏幕里：它在访客触摸的那一刻，直接浮现于织纹之上。八道工序，或是您自己的工序。',
+        b2t: '02 — 更多触摸，更长停留',
+        b2: '在高端零售中，触摸是购买之前的那个动作。这件装置正是为引发触摸而设计：光引导访客靠近，面板转向他们，织物回应手掌。每一个阶段都延长了人与材料相处的时间。',
+        b3t: '03 — 旗舰店的标志时刻，无需屏幕',
+        b3: '一块有生命、会运动的织物，是走进门店的理由，也是离开后谈论的话题。它赋予空间一种任何数字屏幕都无法给予的签名，并且始终忠于材料，因为材料本身就是媒介。',
+
+        n0: '带入您的织物',
+        n1: 'Feel the Space 以京都的西阵织开发，但其中没有任何部分被绑定于某一种面料。感应层可置于任何织物面板之后；投影影像可依据品牌自身的生产工序构建；面板尺寸、导轨长度与位置则依门店而定。',
+        n2: '将它落地，只需三次对话：您的面料、您的工艺故事、您的门店。',
+        n3: '我很乐意展示可运行的原型，并探讨为您的系列定制的版本。<br><a href="mailto:federicoemanuele.mameo@gmail.com">federicoemanuele.mameo@gmail.com</a>',
+
+        p38: 'Federico Emanuele Mameo',
+        p39: '交互设计师与创意技术师，工作于空间智能、物理计算与手工艺的交汇处。Feel the Space 是一项毕业设计，探索由人工智能介导的环境如何成为人与其所持材料之间的首要界面。',
+        p40: '©2026 Federico Emanuele Mameo 版权所有',
+        p41: '一般咨询<br><a href="mailto:federicoemanuele.mameo@gmail.com">federicoemanuele.mameo@gmail.com</a>'
+      };
+
+      var nodes = document.querySelectorAll('[data-i18n]');
+      var EN = {};
+      nodes.forEach(function (el) { EN[el.dataset.i18n] = el.innerHTML; });
+      EN['ctl.soundOff'] = 'Sound off';
+      window.I18N = { en: EN, zh: ZH };
+
+      function setLang(lang) {
+        var dict = lang === 'zh' ? ZH : EN;
+        nodes.forEach(function (el) {
+          var key = el.dataset.i18n;
+          // sound button: keep its current on/off state
+          if (key === 'ctl.soundOn') {
+            var video = el.closest('.media__item').querySelector('video');
+            key = (video && !video.muted) ? 'ctl.soundOff' : 'ctl.soundOn';
+          }
+          if (dict[key] != null) el.innerHTML = dict[key];
+        });
+        document.documentElement.lang = lang;
+        document.querySelectorAll('.header__lang__button').forEach(function (b) {
+          b.classList.toggle('is-active', b.dataset.lang === lang);
+        });
+        try { localStorage.setItem('lang', lang); } catch (e) {}
+      }
+
+      document.querySelectorAll('.header__lang__button').forEach(function (b) {
+        b.addEventListener('click', function () { setLang(b.dataset.lang); });
+      });
+
+      var saved = null;
+      try { saved = localStorage.getItem('lang'); } catch (e) {}
+      if (saved === 'zh') setLang('zh');
+    })();
+  </script>
+
+</body>
+</html>
